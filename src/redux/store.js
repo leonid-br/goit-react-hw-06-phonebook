@@ -9,22 +9,22 @@ const initialState = {
     },
 };
 
-const addContact = (state, action) => {
+const addContact = (state, { payload }) => {
     const { items } = state.contacts;
-    const normalizeName = action.payload.name.toLowerCase();
+    const normalizeName = payload.name.toLowerCase();
     const checkedName = items.find(
         ({ name }) => normalizeName === name.toLowerCase(),
     );
 
     const newContact = {
         id: shortid.generate(),
-        name: action.payload.name,
-        number: action.payload.number,
+        name: payload.name,
+        number: payload.number,
     };
 
     if (checkedName) {
         return alert(
-            `This contact "${action.payload.name.toUpperCase()}" has already been added to your Phonebook`,
+            `This contact "${payload.name.toUpperCase()}" has already been added to your Phonebook`,
         );
     }
 
@@ -37,18 +37,30 @@ const addContact = (state, action) => {
     };
 };
 
-const deleteContact = (state, action) => {
-    console.log('deleteContact ~ action', action);
-    console.log(state.contacts);
+const deleteContact = (state, { payload }) => ({
+    ...state,
+    contacts: {
+        ...state.contacts,
+        items: state.contacts.items.filter(({ id }) => id !== payload),
+    },
+});
+
+const findContact = (state, action) => {
     return {
         ...state,
         contacts: {
             ...state.contacts,
-            items: state.contacts.items.filter(
-                ({ id }) => id !== action.payload,
-            ),
+            filter: action.payload,
         },
     };
+    // console.log('action.payload', action.payload);
+    // const normalizeFilter = action.payload.toLowerCase();
+    // const findContact = state.contacts.items.filter(contact =>
+    //     contact.name.toLowerCase().includes(normalizeFilter),
+    // );
+    // if (findContact.length === 0) {
+    //     alert(`No contact ${normalizeFilter.toUpperCase()}`);
+    // }
 };
 
 const reducer = (state = initialState, action) => {
@@ -58,6 +70,9 @@ const reducer = (state = initialState, action) => {
 
         case 'phonebook/DeleteContact':
             return deleteContact(state, action);
+
+        case 'phonebook/FindContact':
+            return findContact(state, action);
 
         default:
             return state;

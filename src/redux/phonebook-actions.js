@@ -11,7 +11,7 @@ export const deleteContact = id => ({
     payload: id,
 });
 
-export const findContact = contactsArr => ({
+export const findContact = contact => ({
     type: 'phonebook/FindContact',
-    payload: contactsArr,
+    payload: contact,
 });
