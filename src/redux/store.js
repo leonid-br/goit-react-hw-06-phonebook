@@ -1,88 +1,37 @@
-import { createStore, applyMiddleware } from 'redux';
-import { composeWithDevTools } from 'redux-devtools-extension';
-import shortid from 'shortid';
+import { configureStore, getDefaultMiddleware } from '@reduxjs/toolkit';
+import {
+    persistStore,
+    persistReducer,
+    FLUSH,
+    REHYDRATE,
+    PAUSE,
+    PERSIST,
+    PURGE,
+    REGISTER,
+} from 'redux-persist';
+import contactReducer from './phonebook-reducer';
+import storage from 'redux-persist/lib/storage';
 
-const initialState = {
-    contacts: {
-        items: [],
-        filter: '',
-    },
-};
-
-const addContact = (state, { payload }) => {
-    const { items } = state.contacts;
-    const normalizeName = payload.name.toLowerCase();
-    const checkedName = items.find(
-        ({ name }) => normalizeName === name.toLowerCase(),
-    );
-
-    const newContact = {
-        id: shortid.generate(),
-        name: payload.name,
-        number: payload.number,
-    };
-
-    if (checkedName) {
-        return alert(
-            `This contact "${payload.name.toUpperCase()}" has already been added to your Phonebook`,
-        );
-    }
-
-    return {
-        ...state,
-        contacts: {
-            ...state.contacts,
-            items: [newContact, ...state.contacts.items],
+const middleware = [
+    ...getDefaultMiddleware({
+        serializableCheck: {
+            ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
-    };
+    }),
+];
+
+const contactsPersistConfig = {
+    key: 'contacts',
+    storage,
+    blacklist: ['filter'],
 };
 
-const deleteContact = (state, { payload }) => ({
-    ...state,
-    contacts: {
-        ...state.contacts,
-        items: state.contacts.items.filter(({ id }) => id !== payload),
+export const store = configureStore({
+    reducer: {
+        contacts: persistReducer(contactsPersistConfig, contactReducer),
     },
+    middleware,
+    devTools: process.env.NODE_ENV === 'development',
 });
 
-const findContact = (state, action) => {
-    return {
-        ...state,
-        contacts: {
-            ...state.contacts,
-            filter: action.payload,
-        },
-    };
-    // console.log('action.payload', action.payload);
-    // const normalizeFilter = action.payload.toLowerCase();
-    // const findContact = state.contacts.items.filter(contact =>
-    //     contact.name.toLowerCase().includes(normalizeFilter),
-    // );
-    // if (findContact.length === 0) {
-    //     alert(`No contact ${normalizeFilter.toUpperCase()}`);
-    // }
-};
-
-const reducer = (state = initialState, action) => {
-    switch (action.type) {
-        case 'phonebook/AddContact':
-            return addContact(state, action);
-
-        case 'phonebook/DeleteContact':
-            return deleteContact(state, action);
-
-        case 'phonebook/FindContact':
-            return findContact(state, action);
-
-        default:
-            return state;
-    }
-};
-
-const store = createStore(
-    reducer,
-    composeWithDevTools(),
-    // applyMiddleware(...middleware),
-);
-
-export default store;
+export const persistor = persistStore(store);

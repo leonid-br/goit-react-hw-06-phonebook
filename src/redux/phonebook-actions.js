@@ -1,17 +1,17 @@
-export const addContact = (name, number) => ({
-    type: 'phonebook/AddContact',
-    payload: {
-        name,
-        number,
-    },
-});
+import { createAction } from '@reduxjs/toolkit';
+import shortid from 'shortid';
 
-export const deleteContact = id => ({
-    type: 'phonebook/DeleteContact',
-    payload: id,
-});
+export const addContact = createAction(
+    'phonebook/AddContact',
+    (name, number) => ({
+        payload: {
+            id: shortid.generate(),
+            name,
+            number,
+        },
+    }),
+);
 
-export const findContact = contact => ({
-    type: 'phonebook/FindContact',
-    payload: contact,
-});
+export const deleteContact = createAction('phonebook/DeleteContact');
+
+export const findContact = createAction('phonebook/FindContact');

@@ -1,13 +1,17 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addContact } from '../../redux/phonebook-actions';
 import style from './ContactForm.module.css';
 import PropTypes from 'prop-types';
 
-const ContactForm = ({ onSubmit }) => {
+const ContactForm = () => {
     const [name, setName] = useState('');
     const [number, setNumber] = useState('');
+    const dispatch = useDispatch();
+    const contacts = useSelector(state => state.contacts.items);
 
     const handelChange = e => {
-        const { name, value } = e.currentTarget;
+        const { name, value } = e.target;
 
         if (name === 'name') {
             setName(value);
@@ -17,10 +21,27 @@ const ContactForm = ({ onSubmit }) => {
         }
     };
 
+    const changeEnterName = name => {
+        const normalizeName = name.toLowerCase();
+
+        return contacts.find(
+            ({ name }) => normalizeName === name.toLowerCase(),
+        );
+    };
+
     const handelSubmit = e => {
         e.preventDefault();
 
-        onSubmit(name, number);
+        if (changeEnterName(name)) {
+            setName('');
+            setNumber('');
+            return alert(
+                `This contact "${name.toUpperCase()}" has already been added to your Phonebook`,
+            );
+        }
+
+        dispatch(addContact(name, number));
+
         setName('');
         setNumber('');
     };
@@ -62,7 +83,10 @@ const ContactForm = ({ onSubmit }) => {
     );
 };
 ContactForm.propTypes = {
-    onSubmit: PropTypes.func.isRequired,
+    name: PropTypes.string,
+    number: PropTypes.string,
+    handelChange: PropTypes.func,
+    handelSubmit: PropTypes.func,
 };
 
 export default ContactForm;
